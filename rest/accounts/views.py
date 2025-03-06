@@ -18,11 +18,11 @@ class UserRegisterView(APIView):
     def post(self, request):
         ser_data = UserRegisterSerializer(data=request.data)
         if ser_data.is_valid(raise_exception=True):
-            user = ser_data.save()
+            ser_data.save()
 
             return Response(
-                {'user_data': ser_data.data},
-                status=status.HTTP_201_CREATED
+                {'message': 'sent otp code.'},
+                status=status.HTTP_200_OK
             )
 
 
