@@ -28,22 +28,25 @@ class User(AbstractBaseUser, PermissionsMixin):
     
 
 class OTP(models.Model):
-    phone_numebr = models.CharField(max_length=11)
+    phone_number = models.CharField(max_length=11)
     code = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
-    expiers_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+
+    def __str__(self):
+        return f'{self.phone_number} {self.code}'
 
     @staticmethod
-    def create_otp(phone_numebr, length=8):
+    def create_otp(phone_number, length=8):
         characters = string.ascii_uppercase + string.digits
         otp_code = ''.join(secrets.choice(characters) for _ in range(length))
         expiry_time = now() + timedelta(minutes=3)
-        otp = OTP.objects.create(phone_numebr=phone_numebr, code=otp_code, expiers_at=expiry_time)
+        otp = OTP.objects.create(phone_number=phone_number, code=otp_code, expires_at=expiry_time)
         return otp_code
     
     @staticmethod
-    def verify_otp(phone_numebr, enterd_code):
-        otp = OTP.objects.filter(phone_numebr=phone_numebr, code=enterd_code,  expires_at__gte=now()).first()
+    def verify_otp(phone_number, enterd_code):
+        otp = OTP.objects.filter(phone_number=phone_number, code=enterd_code,  expires_at__gte=now()).first()
         if otp:
             otp.delete()
             return True

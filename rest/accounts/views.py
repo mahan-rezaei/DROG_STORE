@@ -8,7 +8,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import OTP
-from utils import send_otp_code
+from .util import send_otp_code
 
 User = get_user_model()
 
@@ -19,16 +19,17 @@ class UserRegisterView(APIView):
     """
     def post(self, request):
         ser_data = UserRegisterSerializer(data=request.data)
-        phone_numebr = ser_data.validated_data['phone_number']
         if ser_data.is_valid(raise_exception=True):
-            otp = OTP.create_otp(phone_numebr)
-            send_otp_code(phone_numebr, otp)
+            phone_number = ser_data.validated_data['phone_number']
+            otp = OTP.create_otp(phone_number)
+            send_otp_code(phone_number, otp)
             request.session['user_register_info'] = {
-                'phone_number': phone_numebr,
+                'phone_number': phone_number,
                 'email': ser_data.validated_data['email'],
                 'full_name': ser_data.validated_data['full_name'],
                 'password': ser_data.validated_data['password'],
             }
+            request.session.set_expiry(300)
             return Response({
                 'message': 'we sent you a verify code.'
             }, status=status.HTTP_200_OK)
@@ -36,19 +37,24 @@ class UserRegisterView(APIView):
 
 class VerifyOTPView(GenericAPIView):
     serializer_class = OTPSerializer
+
     def post(self, request):
-        user_session = request.session['user_register_info']
+        user_session = request.session.get('user_register_info')
+        if not user_session:
+            return Response({'error': 'session expired or invalid'}, status=status.HTTP_404_NOT_FOUND)
         ser_data = self.serializer_class(data=request.data)
-        if ser_data.is_valid():
+        if ser_data.is_valid(raise_exception=True):
             code = ser_data.validated_data['code']
             otp_code = OTP.objects.filter(code=code, phone_number=user_session['phone_number']).first()
+            if otp_code and otp_code.verify_otp(user_session['phone_number'], code):
+                user_ser_data = UserRegisterSerializer(data=user_session)
+                if user_ser_data.is_valid(raise_exception=True):
+                    user_ser_data.save()
+                    otp_code.delete()
+                    del request.session['user_register_info']
+                    return Response({'message': 'user created successfully.'}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'OTP code verification failed'}, status=status.HTTP_400_BAD_REQUEST)
             
-
-            
-        
-
-
-
 
 class UserLoginView(GenericAPIView):
     serializer_class = UserLoginSerializer
