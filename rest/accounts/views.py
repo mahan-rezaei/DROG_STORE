@@ -12,6 +12,7 @@ from .util import send_otp_code
 
 User = get_user_model()
 
+# change or not
 
 class UserRegisterView(APIView):
     """
@@ -54,7 +55,7 @@ class VerifyOTPView(GenericAPIView):
                     del request.session['user_register_info']
                     return Response({'message': 'user created successfully.'}, status=status.HTTP_201_CREATED)
             return Response({'message': 'OTP code verification failed'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
 
 class UserLoginView(GenericAPIView):
     serializer_class = UserLoginSerializer

@@ -4,9 +4,9 @@ from kavenegar import *
 def send_otp_code(phone_number, code):
     try:
 
-        api = KavenegarAPI('2F412F3477512F4A6C674C6257795A6379686E4B5A4636384731724B514F30392F424F31646B4E446279453D')
+        api = KavenegarAPI('3863534D2B474B6153627835396538734B4256416261433069353672545453706F326C48697363366437733D')
         params = {
-            'sender': '20006535',
+            'sender': '2000660110',
             'receptor': phone_number,
             'message': f'کد تایید شما \n {code}'
         }
