@@ -2,11 +2,13 @@ from django.contrib.auth import get_user_model
 from rest_framework.mixins import ListModelMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, OTPSerializer
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from .models import OTP
+from utils import send_otp_code
 
 User = get_user_model()
 
@@ -17,13 +19,35 @@ class UserRegisterView(APIView):
     """
     def post(self, request):
         ser_data = UserRegisterSerializer(data=request.data)
+        phone_numebr = ser_data.validated_data['phone_number']
         if ser_data.is_valid(raise_exception=True):
-            ser_data.save()
+            otp = OTP.create_otp(phone_numebr)
+            send_otp_code(phone_numebr, otp)
+            request.session['user_register_info'] = {
+                'phone_number': phone_numebr,
+                'email': ser_data.validated_data['email'],
+                'full_name': ser_data.validated_data['full_name'],
+                'password': ser_data.validated_data['password'],
+            }
+            return Response({
+                'message': 'we sent you a verify code.'
+            }, status=status.HTTP_200_OK)
+    
 
-            return Response(
-                {'message': 'sent otp code.'},
-                status=status.HTTP_200_OK
-            )
+class VerifyOTPView(GenericAPIView):
+    serializer_class = OTPSerializer
+    def post(self, request):
+        user_session = request.session['user_register_info']
+        ser_data = self.serializer_class(data=request.data)
+        if ser_data.is_valid():
+            code = ser_data.validated_data['code']
+            otp_code = OTP.objects.filter(code=code, phone_number=user_session['phone_number']).first()
+            
+
+            
+        
+
+
 
 
 class UserLoginView(GenericAPIView):

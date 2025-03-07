@@ -43,7 +43,7 @@ class OTP(models.Model):
     
     @staticmethod
     def verify_otp(phone_numebr, enterd_code):
-        otp = OTP.objects.filter(phone_numebr=phone_numebr, code=enterd_code).first()
+        otp = OTP.objects.filter(phone_numebr=phone_numebr, code=enterd_code,  expires_at__gte=now()).first()
         if otp:
             otp.delete()
             return True
