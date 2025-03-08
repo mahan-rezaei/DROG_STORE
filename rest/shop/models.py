@@ -17,7 +17,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=64)
-    category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL, related_name='products')
+    category = models.ManyToManyField(Category, related_name='products')
     image = models.ImageField(upload_to='product_images/%Y/%m/%D')
     price = models.PositiveIntegerField(default=0)
     stock = models.PositiveIntegerField(default=0)
