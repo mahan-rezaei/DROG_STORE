@@ -42,8 +42,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 
+# session settings
 SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True  # حتی در HTTP (برای تست موقت)
+SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
@@ -62,6 +63,7 @@ INSTALLED_APPS = [
 
     # local apps
     'accounts.apps.AccountsConfig',
+    'shop.apps.ShopConfig',
     
     # third-party apps
     'rest_framework',
@@ -150,6 +152,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+# MEDIA SETTINGS
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -185,8 +193,8 @@ SPECTACULAR_SETTINGS = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
 }
