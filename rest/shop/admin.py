@@ -9,6 +9,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter  = ('is_sub',)
 
 
+@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'price', 'stock', 'updated_at')
     search_fields = ('name',)
