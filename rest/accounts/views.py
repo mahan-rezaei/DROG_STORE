@@ -14,6 +14,8 @@ User = get_user_model()
 
 # change or not
 # kk
+
+
 class UserRegisterView(APIView):
     """
     crate a user./
@@ -22,7 +24,7 @@ class UserRegisterView(APIView):
         ser_data = UserRegisterSerializer(data=request.data)
         if ser_data.is_valid(raise_exception=True):
             phone_number = ser_data.validated_data['phone_number']
-            otp = OTP.create_otp(phone_number)
+            otp = OTP.create_otp(phone_number, 6)
             send_otp_code(phone_number, otp)
             request.session['user_register_info'] = {
                 'phone_number': phone_number,
@@ -30,7 +32,6 @@ class UserRegisterView(APIView):
                 'full_name': ser_data.validated_data['full_name'],
                 'password': ser_data.validated_data['password'],
             }
-            request.session.set_expiry(300)
             return Response({
                 'message': 'we sent you a verify code.'
             }, status=status.HTTP_200_OK)
@@ -42,7 +43,7 @@ class VerifyOTPView(GenericAPIView):
     def post(self, request):
         user_session = request.session.get('user_register_info')
         if not user_session:
-            return Response({'error': 'session expired or invalid'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'session expired or invalid'}, status=status.HTTP_400_BAD_REQUEST)
         ser_data = self.serializer_class(data=request.data)
         if ser_data.is_valid(raise_exception=True):
             code = ser_data.validated_data['code']
@@ -53,7 +54,8 @@ class VerifyOTPView(GenericAPIView):
                     user_ser_data.save()
                     otp_code.delete()
                     del request.session['user_register_info']
-                    return Response({'message': 'user created successfully.'}, status=status.HTTP_201_CREATED)
+                    return Response({'message': 'user created successfully.', 'data': user_ser_data.data},
+                                    status=status.HTTP_201_CREATED)
             return Response({'message': 'OTP code verification failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 

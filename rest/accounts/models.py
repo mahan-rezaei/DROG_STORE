@@ -38,7 +38,7 @@ class OTP(models.Model):
 
     @staticmethod
     def create_otp(phone_number, length=8):
-        characters = string.ascii_uppercase + string.digits
+        characters = string.digits
         otp_code = ''.join(secrets.choice(characters) for _ in range(length))
         expiry_time = now() + timedelta(minutes=3)
         otp = OTP.objects.create(phone_number=phone_number, code=otp_code, expires_at=expiry_time)

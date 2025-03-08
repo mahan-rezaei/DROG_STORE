@@ -35,6 +35,20 @@ ALLOWED_HOSTS = []
 # USER MODEl
 AUTH_USER_MODEL = 'accounts.User'
 
+# cors settings
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5174",
+    "http://localhost:5173",
+]
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True  # حتی در HTTP (برای تست موقت)
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -152,8 +166,8 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '5/day',
-        'user': '10/day',
+        'anon': '100/min',
+        'user': '100/min',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': [
@@ -171,9 +185,9 @@ SPECTACULAR_SETTINGS = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # مدت زمان انقضای توکن Access (1 روز)
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),  # مدت زمان انقضای توکن Refresh (2 روز)
-    'ROTATE_REFRESH_TOKENS': False,  # اگر True باشد، Refresh Token بعد از هر درخواست جدید می‌شود.
-    'BLACKLIST_AFTER_ROTATION': True,  # توکن قبلی بعد از چرخش باطل می‌شود.
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
