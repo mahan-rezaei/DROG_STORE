@@ -3,13 +3,13 @@ from .models import Category, Product
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    sub_categories = serializers.SerializerMethodField()
+    subcategories = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ('id', 'name', 'sub_categories')
+        fields = ('id', 'name', 'subcategories')
 
-    def get_sub_categories(self, obj):
+    def get_subcategories(self, obj):
         subs = obj.sub_categories.all()
         ser_data = CategorySerializer(instance=subs, many=True).data
         return ser_data
