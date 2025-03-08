@@ -4,6 +4,6 @@ from .serializer import CategorySerializer
 from .models import Category
 
 
-class CategoryView(ListAPIView):
+class CategoryListView(ListAPIView):
     serializer_class = CategorySerializer
-    queryset = Category.objects.all()
+    queryset = Category.objects.filter(is_sub=False)
