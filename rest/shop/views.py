@@ -5,16 +5,22 @@ from .models import Category, Product
 
 
 class CategoryListView(ListAPIView):
+    """return list of categories with theyr sub categories"""
+
     serializer_class = CategorySerializer
     queryset = Category.objects.filter(is_sub=False)
 
 
 class RetriveProductView(RetrieveAPIView):
+    """return on product (id most sent in url)"""
+
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
 
 
 class ProductListView(ListAPIView):
+    """return list of products"""
+
     serializer_class = ProductSerializer
 
     def get_queryset(self):

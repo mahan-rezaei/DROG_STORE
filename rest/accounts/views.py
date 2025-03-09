@@ -38,6 +38,8 @@ class UserRegisterView(APIView):
     
 
 class VerifyOTPView(GenericAPIView):
+    """create a user if otp code was correct"""
+
     serializer_class = OTPSerializer
 
     def post(self, request):
@@ -60,6 +62,8 @@ class VerifyOTPView(GenericAPIView):
 
 
 class UserLoginView(GenericAPIView):
+    """login user and return refresh, access Token"""
+
     serializer_class = UserLoginSerializer
 
     def post(self, request, *args, **kwargs):
@@ -86,6 +90,8 @@ class UserLogoutView(APIView):
 
 
 class UserListView(ListModelMixin, GenericAPIView):
+    """return users list"""
+
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
