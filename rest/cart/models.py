@@ -11,7 +11,7 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"cart for {self.user.username}"
+        return f"cart for {self.user.phone_number}"
 
 
 class CartItem(models.Model):
