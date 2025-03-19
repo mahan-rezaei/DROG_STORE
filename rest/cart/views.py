@@ -10,13 +10,15 @@ from rest_framework import status
 
 class CartGetView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         try:
             cart = Cart.objects.get(user=request.user)
             ser_data = CartSerlializer(cart)
-            return Response(ser_data.data)
+            return Response(ser_data.data, status=status.HTTP_200_OK)
         except Cart.DoesNotExist:
-            return Response({'message': 'cart for this user does not exist!'})
+            return Response({'message': 'cart for this user does not exist!'},
+                            status=status.HTTP_204_NO_CONTENT)
 
 
 
