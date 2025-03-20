@@ -23,5 +23,18 @@ class CartGetView(APIView):
 
 
 class CartItemViewSet(ViewSet):
-    pass
+    permission_classes = [IsAuthenticated]
+    
+    def list(self, request, **kwargs):
+        pass
+
+    def retrive(self, request, **kwargs):
+        pass
+
+    def create(self, request, **kwargs):
+        pass
+
+    def put(self, request, **kwargs):
+        pass
+
     
