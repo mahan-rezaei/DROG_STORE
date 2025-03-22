@@ -34,22 +34,23 @@ class CartItemViewSet(ViewSet):
         
     
     def list(self, request, **kwargs):
-        """returns list of cart items"""
+        """returns list of cart items."""
         items = CartItem.objects.filter(cart=self.cart)
         ser_data = CartItemSerializer(items, many=True)
         return Response(ser_data.data, status=status.HTTP_200_OK)
     
-    def retrive(self, request, **kwargs):
+    def retrieve(self, request, **kwargs):
+        """returns one of the user cart items."""
         try:
-            item = CartItem.objects.get(pk=kwargs['pk'], cart__user=request.user)
-        except:
-            return Response({'message': 'this item is None'},
-                            status=status.HTTP_204_NO_CONTENT)
+            item = CartItem.objects.get(pk=kwargs['pk'], cart=self.cart)
+        except CartItem.DoesNotExist:
+            return Response({'message': 'item not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         ser_data = CartItemSerializer(item)
-        return Response(ser_data.data)
+        return Response(ser_data.data, status=status.HTTP_200_OK)
 
     def create(self, request, **kwargs):
-        """create one item in user cart"""
+        """create one item in user cart."""
         ser_data = CartItemSerializer(data=request.data)
         if ser_data.is_valid(raise_exception=True):
             ser_data.save(cart=self.cart)
@@ -57,14 +58,26 @@ class CartItemViewSet(ViewSet):
                             status=status.HTTP_201_CREATED)
         
     def update(self, request, **kwargs):
-        """update quantitiy of item in user cart"""
-        item = CartItem.objects.filter(pk=kwargs['pk'], cart__user=request.user)
-        ser_data = CartItemSerializer(item, data=request.data, partial=True)
+        """update quantity of item in user cart."""
+        try:
+            item = CartItem.objects.get(pk=kwargs['pk'], cart=self.cart)
+        except CartItem.DoesNotExist:
+            return Response({'message': 'item not found'},
+                            status=status.HTTP_404_NOT_FOUND)
+        ser_data = CartItemSerializer(instance=item, data=request.data, partial=True)
         if ser_data.is_valid(raise_exception=True):
             ser_data.save()
             return Response({'data': ser_data.data, 'message': 'item updated successfully.'},
                             status=status.HTTP_200_OK)
         
+    def destroy(self, request, **kwargs):
+        try:
+            item = CartItem.objects.get(pk=kwargs['pk'], cart=self.cart)
+            item.delete()
+            return Response({'message': 'Item deleted'}, status=status.HTTP_204_NO_CONTENT)
+        except CartItem.DoesNotExist:
+            return Response({'message': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
     
