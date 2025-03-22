@@ -11,3 +11,4 @@ urlpatterns = [
 
 router = SimpleRouter()
 router.register(r'cart-items', CartItemViewSet, basename='cart-items')
+urlpatterns += router.urls
