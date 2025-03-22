@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.permissions import IsAuthenticated
 from .models import Cart, CartItem
+from shop.models import Product
 from .serializer import CartSerlializer, CartItemSerializer
 from rest_framework import status
 
@@ -26,13 +27,29 @@ class CartItemViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     
     def list(self, request, **kwargs):
-        pass
-
-    def retrive(self, request, **kwargs):
-        pass
+        """returns list of cart items"""
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
+            return Response({'message': 'cart for this user is not regonized'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        items = CartItem.objects.filter(cart=cart)
+        ser_data = CartItemSerializer(items, many=True)
+        return Response(ser_data.data, status=status.HTTP_200_OK)
 
     def create(self, request, **kwargs):
-        pass
+        """create one item in user cart"""
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
+            return Response({'message': 'cart for this user is not regonized'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        ser_data = CartItemSerializer(data=request.data)
+        if ser_data.is_valid(raise_exception=True):
+            ser_data.save(cart=cart)
+            return Response({'message': 'item added successfully', 'data': ser_data.data},
+                            status=status.HTTP_201_CREATED)
+        
 
     def put(self, request, **kwargs):
         pass
