@@ -6,6 +6,27 @@ from django.utils import timezone
 User = get_user_model()
 
 
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    title = models.CharField(max_length=100)  # عنوان آدرس (مثلاً: خانه، محل کار)
+    receiver_name = models.CharField(max_length=100)
+    receiver_phone = models.CharField(max_length=15)
+    city = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=10)
+    address = models.TextField()
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            # اگر این آدرس به عنوان پیش‌فرض انتخاب شده، سایر آدرس‌های کاربر را غیر پیش‌فرض می‌کنیم
+            Address.objects.filter(user=self.user, is_default=True).exclude(id=self.id).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user} - {self.title}"
+
+
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
 
@@ -55,6 +76,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    address = models.ForeignKey(Address, on_delete=models.PROTECT)  # از PROTECT استفاده می‌کنیم تا اگر آدرس حذف شد، سفارش‌ها حفظ شوند
     total_price = models.PositiveBigIntegerField()
     discount_code = models.ForeignKey(DiscountCode, on_delete=models.SET_NULL, null=True, blank=True)
     discount_amount = models.PositiveBigIntegerField(default=0)

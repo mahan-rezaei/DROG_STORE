@@ -5,10 +5,75 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.permissions import IsAuthenticated
-from .models import Cart, CartItem, Order, OrderItem, DiscountCode
+from .models import Cart, CartItem, Order, OrderItem, DiscountCode, Address
 from shop.models import Product
-from .serializer import CartSerlializer, CartItemSerializer
+from .serializer import (
+    CartSerlializer, CartItemSerializer, AddressSerializer,
+    OrderSerializer, OrderItemSerializer
+)
 from rest_framework import status
+
+
+class AddressViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        """returns list of user addresses."""
+        addresses = Address.objects.filter(user=request.user)
+        ser_data = AddressSerializer(addresses, many=True)
+        return Response(ser_data.data, status=status.HTTP_200_OK)
+    
+    def retrieve(self, request, **kwargs):
+        """returns one of the user addresses."""
+        try:
+            address = Address.objects.get(pk=kwargs['pk'], user=request.user)
+        except Address.DoesNotExist:
+            return Response({'message': 'address not found'},
+                          status=status.HTTP_404_NOT_FOUND)
+        ser_data = AddressSerializer(address)
+        return Response(ser_data.data, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        """create a new address for user."""
+        ser_data = AddressSerializer(data=request.data, context={'request': request})
+        if ser_data.is_valid(raise_exception=True):
+            ser_data.save(user=request.user)
+            return Response({
+                'message': 'address added successfully',
+                'data': ser_data.data
+            }, status=status.HTTP_201_CREATED)
+        
+    def update(self, request, **kwargs):
+        """update user address."""
+        try:
+            address = Address.objects.get(pk=kwargs['pk'], user=request.user)
+        except Address.DoesNotExist:
+            return Response({'message': 'address not found'},
+                          status=status.HTTP_404_NOT_FOUND)
+        
+        ser_data = AddressSerializer(
+            instance=address,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+        if ser_data.is_valid(raise_exception=True):
+            ser_data.save()
+            return Response({
+                'data': ser_data.data,
+                'message': 'address updated successfully.'
+            }, status=status.HTTP_200_OK)
+        
+    def destroy(self, request, **kwargs):
+        """remove address."""
+        try:
+            address = Address.objects.get(pk=kwargs['pk'], user=request.user)
+            address.delete()
+            return Response({'message': 'Address deleted'}, 
+                          status=status.HTTP_204_NO_CONTENT)
+        except Address.DoesNotExist:
+            return Response({'message': 'Address not found'}, 
+                          status=status.HTTP_404_NOT_FOUND)
 
 
 class CartGetView(APIView):
@@ -161,6 +226,18 @@ class PlaceOrderView(APIView):
             return Response({'message': 'Cart is empty'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
+        # Validate address
+        address_id = request.data.get('address_id')
+        if not address_id:
+            return Response({'message': 'Address is required'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            address = Address.objects.get(id=address_id, user=request.user)
+        except Address.DoesNotExist:
+            return Response({'message': 'Invalid address'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
         # Calculate total price
         total_price = 0
         order_items = []
@@ -201,6 +278,7 @@ class PlaceOrderView(APIView):
         # Create order
         order = Order.objects.create(
             user=request.user,
+            address=address,
             total_price=total_price,
             discount_code=discount_code,
             discount_amount=discount_amount,
@@ -220,12 +298,11 @@ class PlaceOrderView(APIView):
         # Clear cart
         request.session['cart'] = {}
         
+        # Return order details
+        ser_data = OrderSerializer(order)
         return Response({
             'message': 'Order placed successfully',
-            'order_id': order.id,
-            'total_price': total_price,
-            'discount_amount': discount_amount,
-            'final_price': final_price
+            'data': ser_data.data
         }, status=status.HTTP_201_CREATED)
 
 
