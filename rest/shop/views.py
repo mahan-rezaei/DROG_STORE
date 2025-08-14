@@ -20,7 +20,7 @@ class RetriveProductView(RetrieveAPIView):
 
 class ProductListView(ListAPIView):
     """return list of products"""
-
+    # this is for the achivment in github
     serializer_class = ProductSerializer
 
     def get_queryset(self):
